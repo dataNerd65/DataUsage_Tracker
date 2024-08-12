@@ -1,5 +1,6 @@
 import subprocess
 import datetime
+import os
 
 def get_available_interfaces():
     result = subprocess.run(['vnstat', '--iflist'], stdout=subprocess.PIPE)
@@ -35,13 +36,20 @@ def log_data_usage(interface, log_file):
     if rx_mib is not None and tx_mib is not None:
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open(log_file, 'a') as f:
-            f.write(f"{now}, {interface}, RX: {rx_mib} ({rx_mb:.2f} MB), TX: {tx_mib} ({tx_mb:.2f} MB)\n")
+            f.write(f"{now}, {interface}, RX(Received): {rx_mib} ({rx_mb:.2f} MB), TX(Transmitted): {tx_mib} ({tx_mb:.2f} MB)\n")
     else:
         print(f"Failed to log data usage for {interface}")
+def reset_log_file(log_file):
+    with open(log_file, 'w') as f:
+        f.write("Date, Interface, RX (MiB), RX (MB), TX (MiB), TX (MB)\n")
 
 if __name__ == "__main__":
-    interfaces = ['enp0s31f6', 'wlp1s0']
-    log_file = '/home/peter-kiarie/System_Testing/Data_logfile' #Path to logfile
+    interfaces = ['enp0s31f6', 'wlp1s0'] # Severe correction needed
+    log_file = '/home/peter-kiarie/System_Testing/Data_logfile' # Path to logfile
+
+    # Resetting logfile at midnight
+    if datetime.datetime.now().strftime('%H:%M') == '00:00':
+        reset_log_file(log_file)
 
     available_interfaces = get_available_interfaces()
     for interface in interfaces:
